@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2026 Alexander R. Croft -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+
 # TODO
 
 - [x] Build a Rust library (capsule-lib) that can read/write Capsule files per SPEC.md:

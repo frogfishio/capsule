@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Alexander R. Croft
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::ascii_header::{encode_ascii_header_kv, parse_ascii_header_kv, HeaderField};
 use crate::crc::compute_crc32_iso_hdlc;
 use crate::encoding::Encoding;

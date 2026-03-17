@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2026 Alexander R. Croft -->
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+
 # Capsule
 
 Capsule is a tiny container format (see SPEC.md) plus a Rust implementation:

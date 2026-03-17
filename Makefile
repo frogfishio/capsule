@@ -3,15 +3,15 @@
 
 SHELL := /bin/sh
 
-APP_NAME := rally
+APP_NAME := capsule
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')
 DIST_DIR := dist/$(OS)-$(ARCH)
 DIST_BIN_DIR := dist/$(OS)-$(ARCH)/bin
-DIST_USER_GUIDE := $(DIST_DIR)/USER_GUIDE.md
 DIST_README := $(DIST_DIR)/README.md
+DIST_SPEC := $(DIST_DIR)/SPEC.md
 DIST_LICENSE := $(DIST_DIR)/LICENSE
-DIST_EXAMPLE_CONFIG := $(DIST_DIR)/rally.toml.example
+DIST_EXAMPLE_CONFIG := $(DIST_DIR)/capsule.toml.example
 RELEASE_BIN := target/release/$(APP_NAME)
 
 .PHONY: bump dist clean distclean release
@@ -25,16 +25,18 @@ bump:
 	    ;; \
 	esac; \
 	new_version="$$(printf '%s\n' "$$current_version" | awk -F. 'BEGIN { OFS = "." } { $$NF += 1; print }')"; \
-	awk -v version="$$new_version" 'BEGIN { in_package = 0; updated = 0 } \
-	  /^\[package\][[:space:]]*$$/ { in_package = 1; print; next } \
-	  /^\[/ && $$0 !~ /^\[package\][[:space:]]*$$/ { in_package = 0 } \
-	  in_package && /^version[[:space:]]*=/ && !updated { print "version = \"" version "\""; updated = 1; next } \
-	  { print } \
-	  END { if (!updated) exit 1 }' Cargo.toml > Cargo.toml.tmp; \
-	mv Cargo.toml.tmp Cargo.toml; \
+	for f in crates/capsule/Cargo.toml crates/capsule-lib/Cargo.toml; do \
+	  awk -v version="$$new_version" 'BEGIN { in_package = 0; updated = 0 } \
+	    /^\[package\][[:space:]]*$$/ { in_package = 1; print; next } \
+	    /^\[/ && $$0 !~ /^\[package\][[:space:]]*$$/ { in_package = 0 } \
+	    in_package && /^version[[:space:]]*=/ && !updated { print "version = \"" version "\""; updated = 1; next } \
+	    { print } \
+	    END { if (!updated) exit 1 }' "$$f" > "$$f.tmp" || exit 1; \
+	  mv "$$f.tmp" "$$f" || exit 1; \
+	done; \
 	printf '%s\n' "$$new_version" > VERSION; \
 	echo "VERSION $$current_version -> $$new_version"; \
-	echo "Cargo.toml package version -> $$new_version"
+	echo "crates/* package versions -> $$new_version"
 
 dist:
 	@current_build="$$(cat BUILD)"; \
@@ -47,18 +49,18 @@ dist:
 	new_build="$$((current_build + 1))"; \
 	printf '%s\n' "$$new_build" > BUILD; \
 	echo "BUILD $$current_build -> $$new_build"
-	@cargo build --release
+	@cargo build --release -p capsule
 	@mkdir -p "$(DIST_BIN_DIR)"
 	@cp "$(RELEASE_BIN)" "$(DIST_BIN_DIR)/$(APP_NAME)"
-	@cp "USER_GUIDE.md" "$(DIST_USER_GUIDE)"
 	@cp "README.md" "$(DIST_README)"
+	@cp "SPEC.md" "$(DIST_SPEC)"
 	@cp "LICENSE" "$(DIST_LICENSE)"
-	@cp "rally.toml.example" "$(DIST_EXAMPLE_CONFIG)"
+	@cp "capsule.toml.example" "$(DIST_EXAMPLE_CONFIG)"
 	@echo "Copied $(RELEASE_BIN) to $(DIST_BIN_DIR)/$(APP_NAME)"
-	@echo "Copied USER_GUIDE.md to $(DIST_USER_GUIDE)"
 	@echo "Copied README.md to $(DIST_README)"
+	@echo "Copied SPEC.md to $(DIST_SPEC)"
 	@echo "Copied LICENSE to $(DIST_LICENSE)"
-	@echo "Copied rally.toml.example to $(DIST_EXAMPLE_CONFIG)"
+	@echo "Copied capsule.toml.example to $(DIST_EXAMPLE_CONFIG)"
 
 clean:
 	@rm -rf target
@@ -106,17 +108,19 @@ release:
 	    ;; \
 	esac; \
 	new_build="$$((current_build + 1))"; \
-	awk -v version="$$version" 'BEGIN { in_package = 0; updated = 0 } \
-	  /^\[package\][[:space:]]*$$/ { in_package = 1; print; next } \
-	  /^\[/ && $$0 !~ /^\[package\][[:space:]]*$$/ { in_package = 0 } \
-	  in_package && /^version[[:space:]]*=/ && !updated { print "version = \"" version "\""; updated = 1; next } \
-	  { print } \
-	  END { if (!updated) exit 1 }' Cargo.toml > Cargo.toml.tmp; \
-	mv Cargo.toml.tmp Cargo.toml; \
+	for f in crates/capsule/Cargo.toml crates/capsule-lib/Cargo.toml; do \
+	  awk -v version="$$version" 'BEGIN { in_package = 0; updated = 0 } \
+	    /^\[package\][[:space:]]*$$/ { in_package = 1; print; next } \
+	    /^\[/ && $$0 !~ /^\[package\][[:space:]]*$$/ { in_package = 0 } \
+	    in_package && /^version[[:space:]]*=/ && !updated { print "version = \"" version "\""; updated = 1; next } \
+	    { print } \
+	    END { if (!updated) exit 1 }' "$$f" > "$$f.tmp" || exit 1; \
+	  mv "$$f.tmp" "$$f" || exit 1; \
+	done; \
 	printf '%s\n' "$$new_build" > BUILD; \
 	echo "Prepared release $$tag (build $$new_build) on branch $$branch"; \
 	cargo test; \
-	git add VERSION BUILD Cargo.toml; \
+	git add VERSION BUILD crates/capsule/Cargo.toml crates/capsule-lib/Cargo.toml Cargo.lock; \
 	git commit -m "Release $$tag"; \
 	git tag -a "$$tag" -m "Release $$tag"; \
 	git push origin "$$branch"; \

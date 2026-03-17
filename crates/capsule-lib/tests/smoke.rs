@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Alexander R. Croft
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use capsule_lib::ascii_header::HeaderField;
 use capsule_lib::{Capsule, Encoding, Version};
 

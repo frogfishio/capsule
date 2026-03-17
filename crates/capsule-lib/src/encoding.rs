@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Alexander R. Croft
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::error::{CapsuleError, CapsuleResult};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

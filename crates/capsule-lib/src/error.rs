@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Alexander R. Croft
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use thiserror::Error;
 
 pub type CapsuleResult<T> = Result<T, CapsuleError>;

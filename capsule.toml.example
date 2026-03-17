@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Alexander R. Croft
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# Example capsule.toml for the `capsule pack --spec` command.
+
+version = "0001"
+encoding = "A"
+payload = "./payload.bin"
+out = "./out.capsule"
+
+[header]
+# dialect = "example/1"
+# id = "123"
