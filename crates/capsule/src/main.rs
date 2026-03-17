@@ -5,7 +5,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
 
 use capsule_lib::{Capsule, Encoding, ParseOptions};
 use capsule_lib::ascii_header::HeaderField;
@@ -15,9 +15,14 @@ mod spec;
 #[derive(Parser)]
 #[command(name = "capsule")]
 #[command(about = "Capsule container tool", long_about = None)]
+#[command(arg_required_else_help = true)]
 struct Cli {
+    /// Print license information and exit
+    #[arg(long, global = true)]
+    license: bool,
+
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -35,10 +40,6 @@ enum Commands {
         /// Payload file path
         #[arg(short, long)]
         payload: Option<PathBuf>,
-
-        /// Capsule version as 4 hex digits (e.g. 0001)
-        #[arg(long)]
-        version: Option<String>,
 
         /// Encoding: A (ASCII), B (Base64), C (CBOR)
         #[arg(short = 'e', long)]
@@ -100,13 +101,33 @@ fn parse_kv(s: &str) -> std::result::Result<(String, String), String> {
 }
 
 fn main() -> Result<()> {
-    let cli = Cli::parse();
+    let semver = env!("CAPSULE_SEMVER");
 
-    match cli.command {
-        Commands::Pack { spec, out, payload, version, encoding, header, header_file } => {
+    // Build clap command dynamically so --version uses our repo-derived version.
+    let mut cmd = Cli::command();
+    cmd = cmd.version(semver);
+
+    let matches = cmd.get_matches();
+    let cli = Cli::from_arg_matches(&matches)?;
+
+    if cli.license {
+        println!("Copyright (C) 2026 Alexander R. Croft");
+        println!("License: GPL-3.0-or-later");
+        return Ok(());
+    }
+
+    let Some(command) = cli.command else {
+        // `arg_required_else_help = true` should normally prevent this,
+        // but keep a deterministic fallback.
+        Cli::command().print_help()?;
+        println!();
+        return Ok(());
+    };
+
+    match command {
+        Commands::Pack { spec, out, payload, encoding, header, header_file } => {
             let mut spec_out: Option<PathBuf> = None;
             let mut spec_payload: Option<PathBuf> = None;
-            let mut spec_version: Option<String> = None;
             let mut spec_encoding: Option<String> = None;
             let mut spec_header_file: Option<PathBuf> = None;
             let mut spec_header_fields: Option<Vec<HeaderField>> = None;
@@ -115,7 +136,6 @@ fn main() -> Result<()> {
                 let spec = self::spec::load_spec(&spec_path)?;
                 spec_out = Some(spec.out);
                 spec_payload = Some(spec.payload);
-                spec_version = Some(spec.version);
                 spec_encoding = Some(spec.encoding);
                 spec_header_file = spec.header_file;
                 spec_header_fields = Some(self::spec::header_fields_from_map(&spec.header));
@@ -128,14 +148,9 @@ fn main() -> Result<()> {
                 "missing --payload (or spec.payload)"
             ))?;
 
-            let version_str = version
-                .or(spec_version)
-                .unwrap_or_else(|| "0001".to_string());
             let encoding_str = encoding
                 .or(spec_encoding)
                 .unwrap_or_else(|| "A".to_string());
-
-            let version = self::spec::parse_version_hex(&version_str)?;
             let encoding = self::spec::parse_encoding(&encoding_str)?;
 
             let payload_bytes = fs::read(&payload_path)
@@ -166,7 +181,7 @@ fn main() -> Result<()> {
             };
 
             let capsule = Capsule::from_decoded(
-                version,
+                capsule_lib::Version(0x0001),
                 encoding,
                 header_fields.as_deref(),
                 &header_decoded,

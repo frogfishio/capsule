@@ -3,7 +3,6 @@
 
 # Example capsule.toml for the `capsule pack --spec` command.
 
-version = "0001"
 encoding = "A"
 payload = "./payload.bin"
 out = "./out.capsule"

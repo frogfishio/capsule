@@ -8,13 +8,14 @@ use anyhow::{Context, Result};
 use serde::Deserialize;
 
 use capsule_lib::ascii_header::HeaderField;
-use capsule_lib::{Encoding, Version};
+use capsule_lib::Encoding;
 
 #[derive(Debug, Deserialize)]
 pub struct CapsuleSpec {
-    /// Capsule version as 4 hex digits (e.g. "0001").
-    #[serde(default = "default_version")]
-    pub version: String,
+    /// Forbidden: the Capsule container format version is a property of the capsule
+    /// implementation. It MUST NOT be specified in capsule.toml.
+    #[serde(default)]
+    pub version: Option<String>,
 
     /// Encoding: "A", "B", or "C".
     #[serde(default = "default_encoding")]
@@ -34,10 +35,6 @@ pub struct CapsuleSpec {
     pub header: BTreeMap<String, String>,
 }
 
-fn default_version() -> String {
-    "0001".to_string()
-}
-
 fn default_encoding() -> String {
     "A".to_string()
 }
@@ -47,6 +44,12 @@ pub fn load_spec(path: &Path) -> Result<CapsuleSpec> {
         .with_context(|| format!("read spec {}", path.display()))?;
     let mut spec: CapsuleSpec = toml::from_str(&text)
         .with_context(|| format!("parse TOML spec {}", path.display()))?;
+
+    if let Some(v) = &spec.version {
+        anyhow::bail!(
+            "capsule.toml MUST NOT specify a container format version (found version = '{v}'); the tool/library determines the Capsule format version"
+        );
+    }
 
     // Resolve paths relative to the spec file location.
     let base_dir = path
@@ -69,17 +72,6 @@ pub fn load_spec(path: &Path) -> Result<CapsuleSpec> {
     }
 
     Ok(spec)
-}
-
-pub fn parse_version_hex(s: &str) -> Result<Version> {
-    if s.len() != 4 {
-        anyhow::bail!("version must be 4 hex digits");
-    }
-    let v = u16::from_str_radix(s, 16).context("invalid version hex")?;
-    if v == 0 {
-        anyhow::bail!("version 0000 is reserved");
-    }
-    Ok(Version(v))
 }
 
 pub fn parse_encoding(s: &str) -> Result<Encoding> {

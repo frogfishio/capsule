@@ -15,6 +15,11 @@ Capsule is a tiny container format (see SPEC.md) plus a Rust implementation:
 
 ## CLI
 
+Global flags:
+
+- `--version`: prints the tool version as `$(cat VERSION)+build.$(cat BUILD)`
+- `--license`: prints copyright/license text
+
 Pack an ASCII-encoded capsule:
 
 - `cargo run -p capsule -- pack --out out.capsule --payload ./payload.txt --encoding A --header dialect=example/1 --header id=123`
@@ -30,7 +35,6 @@ Pack using a `capsule.toml` spec (all fields are deterministic; CLI flags overri
 Example `capsule.toml` (ASCII encoding):
 
 ```toml
-version = "0001"
 encoding = "A"
 payload = "./payload.bin"
 out = "./out.capsule"
@@ -43,7 +47,6 @@ id = "123"
 Example `capsule.toml` (Base64/CBOR encodings use opaque header bytes):
 
 ```toml
-version = "0001"
 encoding = "B"
 payload = "./payload.bin"
 header_file = "./header.bin"
