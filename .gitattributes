@@ -1,0 +1,13 @@
+# Ensure deterministic checkouts across platforms.
+# Text files use LF; binary files are never line-ending converted.
+
+* text=auto eol=lf
+
+# Capsule fixtures must be byte-for-byte identical (CRC covers encoded bytes).
+*.capsule -text
+
+# Fixture payloads / header bytes are binary.
+*.bin -text
+
+# Fixture text payload is expected to be LF-terminated.
+*.txt text eol=lf
