@@ -6,12 +6,26 @@
 Capsule is a tiny container format (see SPEC.md) plus a Rust implementation:
 
 - `capsule-lib`: parse/write Capsule files
-- `capsule`: CLI for packing, inspecting, and verifying Capsule files
+- `capsule-cli`: CLI for packing, inspecting, and verifying Capsule files
 
 ## Build
 
 - `cargo build`
 - `cargo test`
+
+## Library
+
+The Rust library is `capsule-lib`.
+
+- Library README: [crates/capsule-lib/README.md](crates/capsule-lib/README.md)
+- API entrypoint: [crates/capsule-lib/src/lib.rs](crates/capsule-lib/src/lib.rs)
+
+Quick integration (path dependency):
+
+```toml
+[dependencies]
+capsule-lib = { path = "path/to/capsule/crates/capsule-lib" }
+```
 
 ## CLI
 
@@ -22,15 +36,15 @@ Global flags:
 
 Pack an ASCII-encoded capsule:
 
-- `cargo run -p capsule -- pack --out out.capsule --payload ./payload.txt --encoding A --header dialect=example/1 --header id=123`
+- `cargo run -p capsule-cli -- pack --out out.capsule --payload ./payload.txt --encoding A --header dialect=example/1 --header id=123`
 
 Pack a binary payload using Base64 encoding:
 
-- `cargo run -p capsule -- pack --out out.capsule --payload ./payload.bin --encoding B --header-file ./header.bin`
+- `cargo run -p capsule-cli -- pack --out out.capsule --payload ./payload.bin --encoding B --header-file ./header.bin`
 
 Pack using a `capsule.toml` spec (all fields are deterministic; CLI flags override spec values):
 
-- `cargo run -p capsule -- pack --spec ./capsule.toml`
+- `cargo run -p capsule-cli -- pack --spec ./capsule.toml`
 
 Example `capsule.toml` (ASCII encoding):
 
@@ -55,18 +69,18 @@ out = "./out.capsule"
 
 Inspect a capsule (optionally verify CRC / encoding validity):
 
-- `cargo run -p capsule -- info ./out.capsule`
-- `cargo run -p capsule -- info --verify ./out.capsule`
+- `cargo run -p capsule-cli -- info ./out.capsule`
+- `cargo run -p capsule-cli -- info --verify ./out.capsule`
 
 Verify a capsule:
 
-- `cargo run -p capsule -- verify ./out.capsule`
+- `cargo run -p capsule-cli -- verify ./out.capsule`
 
 Unpack (decode) a capsule to bytes (payload is always treated as an opaque blob):
 
-- `cargo run -p capsule -- unpack ./out.capsule --out-payload ./payload.out`
-- `cargo run -p capsule -- unpack ./out.capsule --out-payload ./payload.out --out-header ./header.out --verify`
+- `cargo run -p capsule-cli -- unpack ./out.capsule --out-payload ./payload.out`
+- `cargo run -p capsule-cli -- unpack ./out.capsule --out-payload ./payload.out --out-header ./header.out --verify`
 
 Unpack raw encoded bytes exactly as stored (no decoding):
 
-- `cargo run -p capsule -- unpack ./out.capsule --out-payload ./payload.encoded --out-header ./header.encoded --raw`
+- `cargo run -p capsule-cli -- unpack ./out.capsule --out-payload ./payload.encoded --out-header ./header.encoded --raw`

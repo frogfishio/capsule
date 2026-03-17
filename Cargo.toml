@@ -11,6 +11,9 @@ members = [
 [workspace.package]
 edition = "2021"
 license = "GPL-3.0-or-later"
+authors = ["Alexander R. Croft"]
+repository = "https://github.com/frogfishio/capsule/"
+homepage = "https://github.com/frogfishio/capsule/"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

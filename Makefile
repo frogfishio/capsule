@@ -49,7 +49,7 @@ dist:
 	new_build="$$((current_build + 1))"; \
 	printf '%s\n' "$$new_build" > BUILD; \
 	echo "BUILD $$current_build -> $$new_build"
-	@cargo build --release -p capsule
+	@cargo build --release -p capsule-cli
 	@mkdir -p "$(DIST_BIN_DIR)"
 	@cp "$(RELEASE_BIN)" "$(DIST_BIN_DIR)/$(APP_NAME)"
 	@cp "README.md" "$(DIST_README)"
